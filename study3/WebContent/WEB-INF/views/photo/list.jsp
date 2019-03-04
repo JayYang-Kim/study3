@@ -55,8 +55,44 @@
         </div>
         
         <div>
-
-		
+			<table style="width:630px;margin:0 auto;border-spacing:0;">
+				<c:forEach var="dto" items="${list}" varStatus="status">
+					${status.index == 0 ? "<tr>" : ""}
+						<c:if test="${status.index != 0 && status.index % 3 == 0}">
+							<c:out value="</tr><tr>" escapeXml="false"/>
+						</c:if>
+						
+						<td width="210" align="center">
+							<div class="imgLayout" onclick="javascript:location.href='<%=cp%>/photo/article.do?num=${dto.num}&page=${page}'">
+								<img src="<%=cp%>/uploads/photo/${dto.imageFilename}" width="180" height="180" border="0"/>
+								<span class="subject">${dto.subject}</span>
+							</div>
+						</td>
+				</c:forEach>
+				
+				<c:set var = "n" value="${list.size()}"/>
+				<c:if test="${n > 0 && n % 3 != 0}">
+					<c:forEach var="i" begin="${n % 3 + 1}" end = "3" step ="1">
+						<td width="210">
+							<div class="imgLayout"></div>
+						</td>
+					</c:forEach>
+				</c:if>
+				
+				<c:if test="${n != 0}">
+					<c:out value="</tr>" escapeXml="false"/>
+				</c:if>
+			</table>
+			
+			<!-- paging -->
+			<table style="width:100%;border-spacing:0;">
+				<tr height="50">
+					<td align="center">
+						${dataCount == 0 ? "등록된 게시물이 없습니다." : paging}
+					</td>
+				</tr>
+			</table>
+			
 			<table style="width: 100%; margin: 10px auto; border-spacing: 0px;">
 			   <tr height="40">
 			      <td align="left" width="50%">

@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.member.SessionInfo;
+import com.oreilly.servlet.MultipartRequest;
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
 import com.util.FileManager;
 import com.util.MyServlet;
 import com.util.MyUtil;
@@ -34,6 +36,16 @@ public class PhotoServlet extends MyServlet {
 		if(info==null) { // 로그인되지 않은 경우
 			resp.sendRedirect(cp+"/member/login.do");
 			return;
+		}
+		
+		// 이미지를 저장할 경로
+		String root = session.getServletContext().getRealPath("/");
+		pathname = root + "uploads" + File.separator + "photo";
+		
+		File f = new File(pathname);
+		
+		if(!f.exists()) {
+			f.mkdirs();
 		}
 		
 		// uri에 따른 작업 구분
@@ -106,6 +118,35 @@ public class PhotoServlet extends MyServlet {
 	
 	private void createdSubmit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 게시물 저장
+		String cp = req.getContextPath();
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo)session.getAttribute("member");
+		
+		PhotoDAO dao = new PhotoDAO();
+		
+		String encType = "UTF-8";
+		int maxSize = 5 * 1024 * 1024;
+		
+		// request, 서버에 저장할 경로, 최대크기, 파라미터 타입, 동일 파일명 보호
+		MultipartRequest mreq = new MultipartRequest(req, pathname, maxSize, encType, new DefaultFileRenamePolicy());
+		
+		PhotoDTO dto = new PhotoDTO();
+		if(mreq.getFile("upload") != null) {
+			dto.setUserId(info.getUserId());
+			dto.setSubject(mreq.getParameter("subject"));
+			dto.setContent(mreq.getParameter("content"));
+			
+			// 서버에 저장된 파일명
+			String saveFilename = mreq.getFilesystemName("upload");
+			
+			// 파일명 변경
+			saveFilename = FileManager.doFilerename(pathname, saveFilename);
+			dto.setImageFilename(saveFilename);
+			
+			dao.insertPhoto(dto);
+		}
+		
+		resp.sendRedirect(cp + "/photo/list.do");
 	}
 
 	private void article(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -133,19 +174,100 @@ public class PhotoServlet extends MyServlet {
 	
 	private void updateForm(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 수정 폼
+		String cp = req.getContextPath();
+		
+		PhotoDAO dao = new PhotoDAO();
+		
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo)session.getAttribute("member");
+		
+		int num = Integer.parseInt(req.getParameter("num"));
+		String page = req.getParameter("page");
+		
+		// DB에서 해당 게시물 가져오기
+		PhotoDTO dto = dao.readPhoto(num);
+		
+		if(dto == null || !dto.getUserId().equals(info.getUserId())) { // 게시물이 없거나, 작성자와 로그인 아이디가 다른경우
+			resp.sendRedirect(cp + "/photo/list.do?page=" + page);
+			return;
+		}
 		
 		req.setAttribute("mode", "update");
+		req.setAttribute("dto", dto);
+		req.setAttribute("page", page);
 
 		forward(req, resp, "/WEB-INF/views/photo/created.jsp");
 	}
 
 	private void updateSubmit(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 수정 완료
+		String cp = req.getContextPath();
 		
+		PhotoDAO dao = new PhotoDAO();
+		
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo)session.getAttribute("member");
+		
+		String encType = "UTF-8";
+		int maxSize = 5 * 1024 * 1024;
+		
+		// request, 서버에 저장할 경로, 최대크기, 파라미터 타입, 동일 파일명 보호
+		MultipartRequest mreq = new MultipartRequest(req, pathname, maxSize, encType, new DefaultFileRenamePolicy());
+		
+		String page = mreq.getParameter("page");
+		if(!mreq.getParameter("userId").equals(info.getUserId())) {
+			resp.sendRedirect(cp + "/photo/list.do?page=" + page);
+			return;
+		}
+		
+		PhotoDTO dto = new PhotoDTO();
+		
+		dto.setNum(Integer.parseInt(mreq.getParameter("num")));
+		dto.setSubject(mreq.getParameter("subject"));
+		dto.setContent(mreq.getParameter("content"));
+		dto.setImageFilename(mreq.getParameter("imageFilename"));
+		
+		if(mreq.getFile("upload") != null) { // 수정한 파일이 있는경우
+			// 기존 파일 지우기
+			FileManager.doFiledelete(pathname, dto.getImageFilename());
+			
+			// 서버에 저장된 새로운 파일명
+			String saveFilename = mreq.getFilesystemName("upload");
+			
+			// 이름 변경
+			saveFilename = FileManager.doFilerename(pathname, saveFilename);
+			
+			dto.setImageFilename(saveFilename);
+		}
+		
+		dao.updatePhoto(dto);
+		
+		resp.sendRedirect(cp + "/photo/article.do?num=" + dto.getNum() + "&page=" + page);
 	}
 
 	private void delete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 삭제 완료
-				
+		String cp = req.getContextPath();
+		PhotoDAO dao = new PhotoDAO();
+		
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo)session.getAttribute("member");
+		
+		int num = Integer.parseInt(req.getParameter("num"));
+		String page = req.getParameter("page");
+		
+		// DB에서 해당 게시물 가져오기
+		PhotoDTO dto = dao.readPhoto(num);
+		if(dto == null || (!dto.getUserId().equals(info.getUserId()) && !info.getUserId().equals("admin"))) {
+			resp.sendRedirect(cp + "/photo/list.do?page=" + page);
+			return;
+		}
+		
+		// 게시물 삭제 전 이미지 삭제
+		FileManager.doFiledelete(pathname, dto.getImageFilename());
+		
+		dao.deletePhoto(num);
+		
+		resp.sendRedirect(cp + "/photo/list.do?page=" + page);
 	}
 }
