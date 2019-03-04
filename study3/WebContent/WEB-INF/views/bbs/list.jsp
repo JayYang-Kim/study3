@@ -34,7 +34,7 @@
 <div class="container">
     <div class="body-container" style="width: 700px;">
         <div class="body-title">
-            <h3><span style="font-family: Webdings">2</span> 질문과 답변 </h3>
+            <h3><span style="font-family: Webdings">2</span> 게시판 </h3>
         </div>
         
         <div>
@@ -58,27 +58,28 @@
 			      <th width="60" style="color: #787878;">조회수</th>
 			  </tr>
 			 
-<c:forEach var="dto" items="${list}">
+			 <c:forEach var="dto" items="${list}">
 			  <tr align="center" bgcolor="#ffffff" height="35" style="border-bottom: 1px solid #cccccc;"> 
 			      <td>${dto.listNum}</td>
 			      <td align="left" style="padding-left: 10px;">
-			           <c:forEach var="n" begin="1" end="${dto.depth }">&nbsp;&nbsp;</c:forEach>
-			           <c:if test="${dto.depth!=0}">└&nbsp;</c:if>
-			           <a href="${articleUrl}&boardNum=${dto.boardNum}">${dto.subject}</a>
+			           <a href="${articleUrl}&num=${dto.num}">${dto.subject}</a>
 			      </td>
 			      <td>${dto.userName}</td>
 			      <td>${dto.created}</td>
 			      <td>${dto.hitCount}</td>
 			  </tr>
-</c:forEach>
-
+			</c:forEach> 
 			</table>
 			 
 			<table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
 			   <tr height="35">
 				<td align="center">
-			        <c:if test="${dataCount==0}">등록된 게시물이 없습니다.</c:if>
-			        <c:if test="${dataCount!=0}">${paging}</c:if>
+			        <c:if test="${dataCount==0 }">
+			                등록된 게시물이 없습니다.
+			         </c:if>
+			        <c:if test="${dataCount!=0 }">
+			               ${paging}
+			         </c:if>
 				</td>
 			   </tr>
 			</table>
@@ -86,10 +87,10 @@
 			<table style="width: 100%; margin: 10px auto; border-spacing: 0px;">
 			   <tr height="40">
 			      <td align="left" width="100">
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/board/list.do';">새로고침</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/list.do';">새로고침</button>
 			      </td>
 			      <td align="center">
-			          <form name="searchForm" action="<%=cp%>/board/list.do" method="post">
+			          <form name="searchForm" action="<%=cp%>/bbs/list.do" method="post">
 			              <select name="searchKey" class="selectField">
 			                  <option value="subject">제목</option>
 			                  <option value="userName">작성자</option>
@@ -101,7 +102,7 @@
 			        </form>
 			      </td>
 			      <td align="right" width="100">
-			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/board/created.do';">글올리기</button>
+			          <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/created.do';">글올리기</button>
 			      </td>
 			   </tr>
 			</table>

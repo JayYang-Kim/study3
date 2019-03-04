@@ -19,8 +19,8 @@
 <script type="text/javascript" src="<%=cp%>/resource/js/util.js"></script>
 <script type="text/javascript" src="<%=cp%>/resource/jquery/js/jquery-1.12.4.min.js"></script>
 <script type="text/javascript">
-    function sendOk() {
-        var f = document.boardForm;
+    function sendPhoto() {
+        var f = document.photoForm;
 
     	var str = f.subject.value;
         if(!str) {
@@ -31,12 +31,21 @@
 
     	str = f.content.value;
         if(!str) {
-            alert("내용을 입력하세요. ");
+            alert("설명을 입력하세요. ");
             f.content.focus();
             return;
         }
 
-    	f.action="<%=cp%>/board/${mode}_ok.do";
+        var mode="${mode}";
+    	  if(mode=="created"||mode=="update" && f.upload.value!="") {
+    		if(! /(\.gif|\.jpg|\.png|\.jpeg)$/i.test(f.upload.value)) {
+    			alert('이미지 파일만 가능합니다. !!!');
+    			f.upload.focus();
+    			return;
+    		}
+    	  }
+    	  
+      	f.action="<%=cp%>/photo/${mode}_ok.do";
 
         f.submit();
     }
@@ -51,11 +60,11 @@
 <div class="container">
     <div class="body-container" style="width: 700px;">
         <div class="body-title">
-            <h3><span style="font-family: Webdings">2</span> 질문과 답변 </h3>
+            <h3><span style="font-family: Webdings">2</span> 포토 갤러리 </h3>
         </div>
         
         <div>
-			<form name="boardForm" method="post">
+ 			<form name="photoForm" method="post" enctype="multipart/form-data">
 			  <table style="width: 100%; margin: 20px auto 0px; border-spacing: 0px; border-collapse: collapse;">
 			  <tr align="left" height="40" style="border-top: 1px solid #cccccc; border-bottom: 1px solid #cccccc;"> 
 			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">제&nbsp;&nbsp;&nbsp;&nbsp;목</td>
@@ -67,49 +76,46 @@
 			  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
 			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">작성자</td>
 			      <td style="padding-left:10px;"> 
-			          ${sessionScope.member.userName}
+			            ${sessionScope.member.userName}
 			      </td>
 			  </tr>
 			
 			  <tr align="left" style="border-bottom: 1px solid #cccccc;"> 
-			      <td width="100" bgcolor="#eeeeee" style="text-align: center; padding-top:5px;" valign="top">내&nbsp;&nbsp;&nbsp;&nbsp;용</td>
+			      <td width="100" bgcolor="#eeeeee" style="text-align: center; padding-top:5px;" valign="top">설&nbsp;&nbsp;&nbsp;&nbsp;명</td>
 			      <td valign="top" style="padding:5px 0px 5px 10px;"> 
 			        <textarea name="content" rows="12" class="boxTA" style="width: 95%;">${dto.content}</textarea>
 			      </td>
 			  </tr>
+			  
+			  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;">
+			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">이미지</td>
+			      <td style="padding-left:10px;"> 
+			           <input type="file" name="upload" 
+			                      class="boxTF" size="53" style="height: 25px;">
+			       </td>
+			  </tr> 
+
 			  </table>
 			
 			  <table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
 			     <tr height="45"> 
 			      <td align="center" >
-			         <c:if test="${mode=='update'}">
-			         	 <input type="hidden" name="boardNum" value="${dto.boardNum}">
-			        	 <input type="hidden" name="page" value="${page}">
-			        	 <input type="hidden" name="searchKey" value="${searchKey}">
-			        	 <input type="hidden" name="searchValue" value="${searchValue}">
-			        </c:if>			      
-			      	<c:if test="${mode=='reply'}">
-			      	     <input type="hidden" name="groupNum" value="${dto.groupNum}">
-			      	     <input type="hidden" name="orderNo" value="${dto.orderNo}">
-			      	     <input type="hidden" name="depth" value="${dto.depth}">
-			      	     <input type="hidden" name="parent" value="${dto.boardNum}">
-			      	     <input type="hidden" name="page" value="${page}">
-			      	</c:if>
-			        <button type="button" class="btn" onclick="sendOk();">${mode=='update'?'수정완료':(mode=='reply'? '답변완료':'등록하기')}</button>
+			        <button type="button" class="btn" onclick="sendPhoto();">${mode=='update'?'수정완료':'등록하기'}</button>
 			        <button type="reset" class="btn">다시입력</button>
-			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/board/list.do';">${mode=='update'?'수정취소':(mode=='reply'? '답변취소':'등록취소')}</button>
+			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/photo/list.do';">${mode=='update'?'수정취소':'등록취소'}</button>
 			      </td>
 			    </tr>
 			  </table>
 			</form>
         </div>
-
+        
     </div>
 </div>
 
 <div class="footer">
     <jsp:include page="/WEB-INF/views/layout/footer.jsp"></jsp:include>
 </div>
+
 
 <script type="text/javascript" src="<%=cp%>/resource/jquery/js/jquery-ui.min.js"></script>
 <script type="text/javascript" src="<%=cp%>/resource/jquery/js/jquery.ui.datepicker-ko.js"></script>

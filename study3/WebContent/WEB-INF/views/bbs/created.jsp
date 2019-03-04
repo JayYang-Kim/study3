@@ -19,7 +19,7 @@
 <script type="text/javascript" src="<%=cp%>/resource/js/util.js"></script>
 <script type="text/javascript" src="<%=cp%>/resource/jquery/js/jquery-1.12.4.min.js"></script>
 <script type="text/javascript">
-    function sendOk() {
+    function sendBoard() {
         var f = document.boardForm;
 
     	var str = f.subject.value;
@@ -36,7 +36,11 @@
             return;
         }
 
-    	f.action="<%=cp%>/board/${mode}_ok.do";
+    	var mode="${mode}";
+    	if(mode=="created")
+    		f.action="<%=cp%>/bbs/created_ok.do";
+    	else if(mode=="update")
+    		f.action="<%=cp%>/bbs/update_ok.do";
 
         f.submit();
     }
@@ -51,7 +55,7 @@
 <div class="container">
     <div class="body-container" style="width: 700px;">
         <div class="body-title">
-            <h3><span style="font-family: Webdings">2</span> 질문과 답변 </h3>
+            <h3><span style="font-family: Webdings">2</span> 게시판 </h3>
         </div>
         
         <div>
@@ -67,7 +71,7 @@
 			  <tr align="left" height="40" style="border-bottom: 1px solid #cccccc;"> 
 			      <td width="100" bgcolor="#eeeeee" style="text-align: center;">작성자</td>
 			      <td style="padding-left:10px;"> 
-			          ${sessionScope.member.userName}
+			            ${sessionScope.member.userName}
 			      </td>
 			  </tr>
 			
@@ -82,22 +86,13 @@
 			  <table style="width: 100%; margin: 0px auto; border-spacing: 0px;">
 			     <tr height="45"> 
 			      <td align="center" >
-			         <c:if test="${mode=='update'}">
-			         	 <input type="hidden" name="boardNum" value="${dto.boardNum}">
-			        	 <input type="hidden" name="page" value="${page}">
-			        	 <input type="hidden" name="searchKey" value="${searchKey}">
-			        	 <input type="hidden" name="searchValue" value="${searchValue}">
-			        </c:if>			      
-			      	<c:if test="${mode=='reply'}">
-			      	     <input type="hidden" name="groupNum" value="${dto.groupNum}">
-			      	     <input type="hidden" name="orderNo" value="${dto.orderNo}">
-			      	     <input type="hidden" name="depth" value="${dto.depth}">
-			      	     <input type="hidden" name="parent" value="${dto.boardNum}">
-			      	     <input type="hidden" name="page" value="${page}">
-			      	</c:if>
-			        <button type="button" class="btn" onclick="sendOk();">${mode=='update'?'수정완료':(mode=='reply'? '답변완료':'등록하기')}</button>
+			        <button type="button" class="btn" onclick="sendBoard();">${mode=='update'?'수정완료':'등록하기'}</button>
 			        <button type="reset" class="btn">다시입력</button>
-			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/board/list.do';">${mode=='update'?'수정취소':(mode=='reply'? '답변취소':'등록취소')}</button>
+			        <button type="button" class="btn" onclick="javascript:location.href='<%=cp%>/bbs/list.do';">${mode=='update'?'수정취소':'등록취소'}</button>
+			         <c:if test="${mode=='update'}">
+			         	 <input type="hidden" name="num" value="${dto.num}">
+			        	 <input type="hidden" name="page" value="${page}">
+			        </c:if>
 			      </td>
 			    </tr>
 			  </table>

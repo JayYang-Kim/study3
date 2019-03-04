@@ -64,10 +64,10 @@ $(function(){
         <li>
             <a href="#">커뮤니티</a>
             <ul>
-                <li><a href="#">방명록</a></li>
-                <li><a href="#">게시판</a></li>
+                <li><a href="<%=cp%>/guest/guest.do">방명록</a></li>
+                <li><a href="<%=cp%>/bbs/list.do">게시판</a></li>
                 <li><a href="#">자료실</a></li>
-                <li><a href="#">포토갤러리</a></li>
+                <li><a href="<%=cp%>/photo/list.do">포토갤러리</a></li>
             </ul>
         </li>
 
@@ -79,7 +79,7 @@ $(function(){
             <a href="#">고객센터</a>
             <ul>
                 <li><a href="#" style="margin-left:150px; " onmouseover="this.style.marginLeft='150px';">자주하는질문</a></li>
-                <li><a href="#">공지사항</a></li>
+                <li><a href="<%=cp%>/notice/list.do">공지사항</a></li>
                 <li><a href="<%=cp%>/board/list.do">질문과 답변</a></li>
                 <li><a href="#">주요일정</a></li>
                 <li><a href="#">이벤트</a></li>
