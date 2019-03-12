@@ -27,7 +27,7 @@ function deleteBoard(num) {
 
     if(confirm("위 자료를 삭제 하시 겠습니까 ? "))
     	location.href=url;
-</c:if>    
+</c:if>
 <c:if test="${sessionScope.member.userId!='admin' && sessionScope.member.userId!=dto.userId}">
     alert("게시물을 삭제할 수  없습니다.");
 </c:if>
@@ -45,6 +45,72 @@ function updateBoard(num) {
 <c:if test="${sessionScope.member.userId!=dto.userId}">
    alert("게시물을 수정할 수  없습니다.");
 </c:if>
+}
+
+jQuery(function(){
+	$("#sendReply").click(function(){
+		var content = $("#replyContent").val().trim();
+		
+		if(!content) {
+			$("#replyContent").focus();
+			return;
+		}
+		
+		content = encodeURIComponent(content);
+		
+		var url = "<%=cp%>/bbs/insertReply.do";
+		var query = "num=${dto.num}&content=" + content + "&answer=0";
+		
+		$.ajax({
+			type : "post",
+			url : url,
+			data : query,
+			dataType : "json",
+			success : function(data) {
+				listPage(1);
+				
+				$("#content").val("");
+			},
+			beforeSend : function(jqXHR) {
+				jqXHR.setRequestHeader("AJAX", true); // 서버에서 ajax라는 사실을 알 수 있도록 알려주는것
+			},
+			error : function(e) {
+				if(e.status == 403) {
+					location.href = "<%=cp%>/member/login.do";
+					return;
+				}
+				console.log(e.responseText);
+			}
+		});
+	});
+});
+
+jQuery(function(){
+	listPage(1);
+});
+
+function listPage(page) {
+	var url = "<%=cp%>/bbs/listReply.do";
+	var query = "num=${dto.num}&pageNo=" + page;
+	
+	$.ajax({
+		type : "get",
+		url : url,
+		data : query,
+		success : function(data) {
+			$("#listReply").html(data);
+		},
+		beforeSend : function(jqXHR) {
+			jqXHR.setRequestHeader("AJAX", true); // 서버에서 ajax라는 사실을 알 수 있도록 알려주는것
+		},
+		error : function(e) {
+			if(e.status == 403) {
+				location.href = "<%=cp%>/member/login.do";
+				return;
+			}
+			console.log(e.responseText);
+		}
+	});
 }
 </script>
 </head>
@@ -119,7 +185,27 @@ function updateBoard(num) {
 			</tr>
 			</table>
         </div>
-
+		<div>
+            <table style='width: 100%; margin: 15px auto 0px; border-spacing: 0px;'>
+            <tr height='30'> 
+	            <td align='left'>
+	            	<span style='font-weight: bold;' >댓글쓰기</span><span> - 타인을 비방하거나 개인정보를 유출하는 글의 게시를 삼가 주세요.</span>
+	            </td>
+            </tr>
+            <tr>
+               <td style='padding:5px 5px 0px;'>
+                    <textarea id='replyContent' class='boxTA' style='width:99%; height: 70px;'></textarea>
+                </td>
+            </tr>
+            <tr>
+               <td align='right'>
+                    <button type='button' id="sendReply" class='btn' style='padding:10px 20px;'>댓글 등록</button>
+                </td>
+            </tr>
+            </table>
+            
+            <div id="listReply"></div>
+ 	    </div>
     </div>
 </div>
 

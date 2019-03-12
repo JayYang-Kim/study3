@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
@@ -25,52 +25,46 @@
 <script type="text/javascript" src="<%=cp%>/resource/js/util.js"></script>
 <script type="text/javascript" src="<%=cp%>/resource/jquery/js/jquery-1.12.4.min.js"></script>
 <script type="text/javascript">
-var pageNo=1;
-var totalPage=1;
-
-// 스크롤바 존재 여부
-function checkScrollBar() {
-	var hContent=$("body").height();
-	var hWindow=$(window).height();
-	if(hContent>hWindow)
-		return true;
-	
-	return false;
-}
-
-// 무한 스크롤
-$(function(){
-	$(window).scroll(function() {
-		if($(window).scrollTop()+100>=$(document).height()-$(window).height()) {
-			if(pageNo<totalPage) {
-				++pageNo;
-				listPage(pageNo);
-			}
-		}
-	});
-});
-
 
 $(function(){
 	listPage(1);
 });
 
 function listPage(page) {
-	var url="<%=cp%>/guest/list.do";
+	var query = "pageNo=" + page;
+	var url = "<%=cp%>/guest/list.do";
 	
-	$.post(url, {pageNo:page}, function(data){
-		printGuest(data);
-	}, "json");
+	$.ajax({
+		type : "post",
+		url : url,
+		data : query,
+		dataType : "json",
+		success : function(data) {
+			printGuest(data);
+		},
+		error : function(e) {
+			console.log(e.responseText);
+		}
+	});
 }
 
 function printGuest(data) {
-	var uid="${sessionScope.member.userId}";
+	var uid = "${sessionScope.member.userId}";
 	
-	var dataCount=data.dataCount;
-	var page=data.pageNo;
-	totalPage=data.total_page;
+	var dataCount = data.dataCount;
+	var total_page = data.total_page;
+	var pageNo = data.pageNo;
+	var paging = data.paging;
 	
 	var out="";
+	var out="<table style='width: 100%; margin: 10px auto 0px; border-spacing: 0px; border-collapse: collapse;'>";
+	out+="  <tr height='35'>";
+	out+="     <td width='50%'>";
+	out+="        <span style='color: #3EA9CD; font-weight: 700;'>방명록 "+dataCount+"개</span>";
+	out+="        <span>[목록, "+pageNo+"/"+total_page+" 페이지]</span>";
+	out+="      </td>";
+	out+="      <td width='50%'>&nbsp;</td>";
+	out+="   </tr>";
 	
 	if(dataCount!=0) {
 		for(var idx=0; idx<data.list.length; idx++) {
@@ -80,11 +74,11 @@ function printGuest(data) {
 			var content=data.list[idx].content;
 			var created=data.list[idx].created;
 			
-			out+="    <tr height='35' bgcolor='#eeeeee' id='tr"+num+"'>";
+			out+="    <tr height='35' bgcolor='#eeeeee'>";
 			out+="      <td width='50%' style='padding-left: 5px; border:1px solid #cccccc; border-right:none;'>"+ userName+"</td>";
 			out+="      <td width='50%' align='right' style='padding-right: 5px; border:1px solid #cccccc; border-left:none;'>" + created;
 			if(uid==userId || uid=="admin") {
-				out+=" | <a onclick='deleteGuest(\""+num+"\", \""+page+"\");'>삭제</a></td>" ;
+				out+=" | <a onclick='deleteGuest(\""+num+"\", \""+pageNo+"\");'>삭제</a></td>" ;
 			} else {
 				out+=" | <a href='#'>신고</a></td>" ;
 			}
@@ -93,84 +87,75 @@ function printGuest(data) {
 			out+="      <td colspan='2' style='padding: 5px;' valign='top'>"+content+"</td>";
 			out+="    </tr>";
 		}
-	}
-	$("#listGuestBody").append(out);
-	
-	if(! checkScrollBar() ) {
-		if(pageNo < totalPage) {
-			++pageNo;
-			listPage(pageNo);
-		}
+		out+="    <tr style='height: 35px;'>";
+		out+="      <td colspan='2' style='text-align: center;'>";
+		out+=paging;
+		out+="      </td>";
+		out+="    </tr>";
 	}
 	
+	out+="</table>";
+	
+	$("#listGuest").html(out);
 }
 
 $(function(){
 	$("#btnSend").click(function(){
-		  var uid="${sessionScope.member.userId}";
-		  
-		  if(! uid) {
-			  alert("로그인이 필요 하니다.");
-			  return;
-		  }
-		  
-		  // var query="content="+$("#content").val();
-		  var query="content="+encodeURIComponent($("#content").val());
-		  var url="<%=cp%>/guest/insert.do";
-		  
-		  $.ajax({
-			  type:"post"
-			  ,url:url
-			  ,data:query
-			  ,dataType:"json"
-			  ,success:function(data) {
-				  var state = data.state;
-				  if(state=="loginFail") {
-					  location.href="<%=cp%>/member/login.do";
-					  return;
-				  }
-				  
-				  $("#content").val("");
-
-				  $("#listGuestBody").empty();
-				  pageNo=1;
-				  listPage(1);
-			  }
-		      ,beforeSend:function(){
-		    	  if(! $("#content").val().trim()) {
-		    		  $("#content").focus();
-		    		  return false;
-		    	  }
-		    	  
-		    	  return true;
-		      }
-		      ,error:function(e) {
-		    	  console.log(e.responseText);
-		      }
-		  });
-
-		  
+		var uid = "${sessionScope.member.userId}";
+		
+		if(!uid) {
+			location.href = "<%=cp%>/member/login.do";
+			return;
+		}
+		
+		if(!$("#content").val().trim()) {
+			$("#content").focus();
+			return;
+		}
+		
+		//var query = "content=" + $("#content").val(); // ? 등 특수기호만 보내면 문제가 발생한다.
+		var query = $("form[name=guestForm]").serialize(); // 직렬화를 한 경우 문제가 발생하지 않는다.
+		var url = "<%=cp%>/guest/insert.do";
+		
+		$.ajax({
+			type : "post",
+			url : url,
+			data : query,
+			dataType : "json",
+			success : function(data) {
+				var state = data.state;
+				
+				if(state == "loginFail") {
+					location.href = "<%=cp%>/member/login.do";
+					return;
+				}
+				
+				$("#content").val("");
+				
+				listPage(1);
+			},
+			error : function(e) {
+				console.log(e.responseText);
+			}
+		});
 	});
 });
 
 function deleteGuest(num, page) {
-	if(! confirm("게시물을 삭제하시겠습니까 ?"))
-		return;
-	
-	var url="<%=cp%>/guest/delete.do";
-	
-	$.post(url, {num:num}, function(data){
-		var state=data.state;
-		if(state=="loginFail") {
-			location.href="<%=cp%>/member/login.do";
-			return;
-		}
+	if(confirm("게시물을 삭제 하시겠습니까?")) {
+		var url = "<%=cp%>/guest/delete.do";
 		
-		$("#listGuestBody").empty();
-		  pageNo=1;
-		  listPage(1);
-		
-	}, "json");
+		$.post(url, {num : num}, function(data){
+			var state = data.state;
+			
+			if(state == "loginFail") {
+				location.href = "<%=cp%>/member/login.do";
+				return;
+			}
+			
+			listPage(page);
+		}, "json"); // 서버측에 어떤 타입으로 받을것인지 지정
+	}
 }
 </script>
 
@@ -203,20 +188,7 @@ function deleteGuest(num, page) {
             </div>
            </form>
          
-           <div id="listGuest">
-              <table style='width: 100%; margin: 10px auto 0px; border-spacing: 0px; border-collapse: collapse;'>
-                  <thead>
-                      <tr height='35'>
-                          <td width='50%'>
-                              <span style='color: #3EA9CD; font-weight: 700;'>방명록</span>
-                              <span>[목록]</span>
-                          </td>
-                          <td width='50%'>&nbsp;</td>
-                      </tr>
-                  </thead>
-                  <tbody id="listGuestBody"></tbody>
-              </table>
-           </div>
+           <div id="listGuest" style="width:100%; margin: 0px auto;"></div>
                     
         </div>
     </div>

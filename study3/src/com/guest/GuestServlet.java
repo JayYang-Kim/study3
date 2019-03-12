@@ -28,13 +28,13 @@ public class GuestServlet extends MyServlet {
 		String uri=req.getRequestURI();
 		
 		// uri에 따른 작업 구분
-		if(uri.indexOf("guest.do")!=-1) {
+		if(uri.indexOf("guest.do")!=-1) { // ajax (x)
 			guest(req, resp);
-		} else if(uri.indexOf("list.do")!=-1) {
+		} else if(uri.indexOf("list.do")!=-1) { // ajax
 			list(req, resp);
-		} else if(uri.indexOf("insert.do")!=-1) {
+		} else if(uri.indexOf("insert.do")!=-1) { // ajax
 			guestSubmit(req, resp);
-		} else if(uri.indexOf("delete.do")!=-1) {
+		} else if(uri.indexOf("delete.do")!=-1) { // ajax
 			delete(req, resp);
 		}
 	}
@@ -117,5 +117,28 @@ public class GuestServlet extends MyServlet {
 	
 	private void delete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// 방명록 삭제
+		String cp = req.getContextPath();
+		
+		HttpSession session = req.getSession();
+		SessionInfo info = (SessionInfo)session.getAttribute("member");
+		
+		String state = "true";
+		if(info == null) {
+			state = "loginFail";
+		} else {
+			GuestDAO dao = new GuestDAO();
+			
+			int num = Integer.parseInt(req.getParameter("num"));
+			
+			dao.deleteGuest(num, info.getUserId());
+		}
+		
+		JSONObject job = new JSONObject();
+		job.put("state", state);
+		
+		// json으로 결과 전송
+		resp.setContentType("text/html;charset=utf-8");
+		PrintWriter out = resp.getWriter();
+		out.print(job.toString());
 	}
 }
