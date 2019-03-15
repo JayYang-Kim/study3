@@ -8,7 +8,7 @@
 
 <script type="text/javascript">
 //엔터 처리
-$(function(){
+jQuery(function(){
 	   $("input").not($(":button")).keypress(function (evt) {
 	        if (evt.keyCode == 13) {
 	            var fields = $(this).parents('form,body').find('button,input,textarea,select');

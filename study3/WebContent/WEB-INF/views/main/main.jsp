@@ -1,4 +1,5 @@
-﻿<%@ page contentType="text/html; charset=UTF-8" %>
+﻿<%@page import="com.listener.CountManager"%>
+<%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
@@ -29,7 +30,13 @@
 <div class="container">
     <div class="body-container" style="width: 700px;">
         <div style="padding-top: 15px;">
-            메인 화면 입니다.
+			<p>메인 화면 입니다.</p>
+			<p>
+				현재 접속자 수 : <%=CountManager.getCurrentCount()%>
+				오늘 접속자 수 : <%=CountManager.getToDayCount()%>
+				어제 접속자 수 : <%=CountManager.getYesterDayCount()%>
+				전체 접속자 수 : <%=CountManager.getTotalCount()%>
+			</p>
         </div>
     </div>
 </div>
